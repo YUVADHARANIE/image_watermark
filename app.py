@@ -1,58 +1,25 @@
 import streamlit as st
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageDraw, ImageFont
 
-def add_watermark(image, watermark, position, transparency):
-    # Resize watermark if it's too large
-    if watermark.size[0] > image.size[0] or watermark.size[1] > image.size[1]:
-        watermark = watermark.resize((image.size[0] // 5, image.size[1] // 5), Image.ANTIALIAS)
+def watermark_image(image, text):
+    # Open an image file
+    with Image.open(image) as img:
+        draw = ImageDraw.Draw(img)
+        font = ImageFont.load_default()
 
-    # Make the watermark semi-transparent
-    watermark = watermark.convert("RGBA")
-    alpha = watermark.split()[3]
-    alpha = ImageEnhance.Brightness(alpha).enhance(transparency)
-    watermark.putalpha(alpha)
+        # Position for watermark text
+        text_position = (10, img.height - 30)
 
-    # Position the watermark
-    if position == "Top-Left":
-        image.paste(watermark, (0, 0), watermark)
-    elif position == "Top-Right":
-        image.paste(watermark, (image.size[0] - watermark.size[0], 0), watermark)
-    elif position == "Bottom-Left":
-        image.paste(watermark, (0, image.size[1] - watermark.size[1]), watermark)
-    elif position == "Bottom-Right":
-        image.paste(watermark, (image.size[0] - watermark.size[0], image.size[1] - watermark.size[1]), watermark)
-    elif position == "Center":
-        image.paste(watermark, ((image.size[0] - watermark.size[0]) // 2, (image.size[1] - watermark.size[1]) // 2), watermark)
+        # Add text to image
+        draw.text(text_position, text, font=font)
 
-    return image
+        return img
 
-# Streamlit app layout
-st.title("Image Watermarking App")
+st.title("Watermark Image App")
 
-# Upload an image
-image_file = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
-watermark_file = st.file_uploader("Upload a Watermark", type=["png"])
+uploaded_file = st.file_uploader("Choose an image...", type="jpg")
+watermark_text = st.text_input("Enter watermark text:")
 
-if image_file and watermark_file:
-    # Load the image and watermark
-    image = Image.open(image_file).convert("RGBA")
-    watermark = Image.open(watermark_file).convert("RGBA")
-
-    # Watermark position selection
-    position = st.radio("Select Watermark Position", ["Top-Left", "Top-Right", "Bottom-Left", "Bottom-Right", "Center"])
-    
-    # Transparency slider
-    transparency = st.slider("Watermark Transparency", 0.0, 1.0, 0.5)
-
-    # Add watermark to the image
-    watermarked_image = add_watermark(image, watermark, position, transparency)
-
-    # Display the watermarked image
-    st.image(watermarked_image, caption="Watermarked Image", use_column_width=True)
-
-    # Option to download the image
-    output_image = watermarked_image.convert("RGB")
-    output_image_path = "watermarked_image.jpg"
-    output_image.save(output_image_path)
-    with open(output_image_path, "rb") as file:
-        st.download_button(label="Download Watermarked Image", data=file, file_name="watermarked_image.jpg", mime="image/jpeg")
+if uploaded_file and watermark_text:
+    img = watermark_image(uploaded_file, watermark_text)
+    st.image(img, caption='Watermarked Image', use_column_width=True)
