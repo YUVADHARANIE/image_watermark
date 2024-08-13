@@ -29,12 +29,20 @@ if uploaded_image is not None:
     font_size = st.slider("Font size", 10, 100, 50)
     color = st.color_picker("Choose font color", "#FFFFFF")
 
+    # Upload font file (optional)
+    font_file = st.file_uploader("Upload a font file (e.g., arial.ttf)", type=["ttf"])
+
     # Watermark processing
     if st.button("Add Watermark"):
         # Make the image editable
         editable_image = image.copy()
         draw = ImageDraw.Draw(editable_image)
-        font = ImageFont.truetype("arial.ttf", font_size)
+
+        # Choose font
+        if font_file is not None:
+            font = ImageFont.truetype(font_file, font_size)
+        else:
+            font = ImageFont.load_default()
 
         # Set watermark position
         width, height = image.size
