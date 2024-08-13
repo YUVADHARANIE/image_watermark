@@ -46,7 +46,11 @@ if uploaded_image is not None:
 
         # Set watermark position
         width, height = image.size
-        text_width, text_height = draw.textsize(watermark_text, font=font)
+        
+        # Get text dimensions
+        bbox = draw.textbbox((0, 0), watermark_text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
 
         if position == "Top Left":
             pos = (10, 10)
